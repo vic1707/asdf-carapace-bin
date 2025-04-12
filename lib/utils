@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-TOOL_NAME="NAME"
-REPO_URL="TOOL_GITHUB_URL"
+TOOL_NAME="carapace-bin"
+REPO_URL="https://github.com/carapace-sh/carapace-bin"
 
 say() {
 	printf "[asdf-$TOOL_NAME]: %s\n" "$*"
