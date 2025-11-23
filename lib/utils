@@ -148,11 +148,10 @@ arch_docker_format() {
     uname_arch="$(uname -m)"
 
     case "$uname_arch" in
-        x86_64)  printf "amd64" ;;
-        i386)    printf "i386" ;;
-        aarch64) printf "arm64" ;;
-        armv7l)  printf "armhf" ;;
-        armv7)   printf "armhf" ;;
-        *)       fail "Unsupported architecture: $uname_arch" ;;
+        x86_64 | amd64)         printf "amd64" ;;
+        i386)                   printf "i386" ;;
+        aarch64 | arm64)        printf "arm64" ;;
+        armv7l | armv7 | armhf) printf "armhf" ;;
+        *)                      fail "Unsupported architecture: $uname_arch" ;;
     esac
 }
