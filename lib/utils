@@ -10,7 +10,7 @@ dl_link() {
     RELEASE_BASE_URL="$REPO_URL/releases/download/$TAG_PREFIX$ASDF_INSTALL_VERSION"
     platform="$(uname -s | tr '[:upper:]' '[:lower:]')"
     arch="$(arch_docker_format)"
-    DL_FILE="${TOOL_NAME}_${platform}_${arch}.tar.gz"
+    DL_FILE="${TOOL_NAME}_${ASDF_INSTALL_VERSION}_${platform}_${arch}.tar.gz"
 
     URL="$RELEASE_BASE_URL/$DL_FILE"
 
