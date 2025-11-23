@@ -9,7 +9,7 @@ TAG_PREFIX="v"
 dl_link() {
     RELEASE_BASE_URL="$REPO_URL/releases/download/$TAG_PREFIX$ASDF_INSTALL_VERSION"
     platform="$(uname -s | tr '[:upper:]' '[:lower:]')"
-    arch="$(uname -m)"
+    arch="$(arch_docker_format)"
     DL_FILE="${TOOL_NAME}_${platform}_${arch}.tar.gz"
 
     URL="$RELEASE_BASE_URL/$DL_FILE"
@@ -142,4 +142,17 @@ get_target_triples() {
     esac
 
     printf '%s' "$triples"
+}
+
+arch_docker_format() {
+    uname_arch="$(uname -m)"
+
+    case "$uname_arch" in
+        x86_64)  printf "amd64" ;;
+        i386)    printf "i386" ;;
+        aarch64) printf "arm64" ;;
+        armv7l)  printf "armhf" ;;
+        armv7)   printf "armhf" ;;
+        *)       fail "Unsupported architecture: $uname_arch" ;;
+    esac
 }
