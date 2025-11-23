@@ -52,4 +52,4 @@ jobs:
               # v4.0.1 fails: <https://github.com/asdf-vm/actions/issues/609>
               uses: asdf-vm/actions/plugin-test@05e0d2ed97b598bfce82fd30daf324ae0c4570e6 # v3.0.2
               with:
-                  command: ${{ steps.tool-name.outputs.tool_name }} --version
+                  command: carapace --version
