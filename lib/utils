@@ -4,77 +4,73 @@ set -euo pipefail
 
 TOOL_NAME="carapace-bin"
 REPO_URL="https://github.com/carapace-sh/carapace-bin"
+TAG_PREFIX="v"
+
+dl_link() {
+    RELEASE_BASE_URL="$REPO_URL/releases/download/$TAG_PREFIX$ASDF_INSTALL_VERSION"
+    platform="$(uname -s | tr '[:upper:]' '[:lower:]')"
+    arch="$(arch_docker_format)"
+    DL_FILE="${TOOL_NAME}_${ASDF_INSTALL_VERSION}_${platform}_${arch}.tar.gz"
+
+    URL="$RELEASE_BASE_URL/$DL_FILE"
+
+    printf "%s" "$URL"
+}
 
 say() {
-	printf "[asdf-$TOOL_NAME]: %s\n" "$*"
+    printf "[asdf-$TOOL_NAME]: %s\n" "$*"
 }
 
 fail() {
-	say "$*" >&2
-	exit 1
+    say "$*" >&2
+    exit 1
 }
 
 sort_semver() {
-	sort -t. -k 1,1n -k 2,2n -k 3,3n
+    sort -t. -k 1,1n -k 2,2n -k 3,3n
 }
 
 list_github_semver_tags() {
-	git ls-remote --tags --refs "$REPO_URL" \
-		| grep -o "refs/tags/v.*" \
-		| cut -d/ -f3- \
-		| sed "s/^v//" \
-		| grep -oE '^[0-9]+\.[0-9]+\.[0-9]+$' \
-		| uniq
+    git ls-remote --tags --refs "$REPO_URL" \
+        | cut -d/ -f3- \
+        | sed "s/^v//" \
+        | grep -oE '^[0-9]+\.[0-9]+\.[0-9]+$' \
+        | uniq
 }
 
 is_valid() {
-	url="$1"
-	if which curl > /dev/null; then
-		curl -s --fail "$url"
-	elif which wget > /dev/null; then
-		wget -q --spider "$url" &> /dev/null
-	else
-		fail "Error: Neither curl nor wget is available."
-	fi
+    url="$1"
+    if which curl > /dev/null; then
+        curl -s --fail "$url"
+    elif which wget > /dev/null; then
+        wget -q --spider "$url" &> /dev/null
+    else
+        fail "Error: Neither curl nor wget is available."
+    fi
 }
 
 download() {
-	out_file="$1"
-	url="$2"
+    url="$1"
 
-	if which curl > /dev/null; then
-		curl -fsSL ${GITHUB_API_TOKEN:+-H "Authorization: token $GITHUB_API_TOKEN"} -o "$out_file" "$url"
-	elif which wget > /dev/null; then
-		wget -q ${GITHUB_API_TOKEN:+--header="Authorization: token $GITHUB_API_TOKEN"} -O "$out_file" "$url"
-	else
-		fail "Error: Neither curl nor wget is available."
-	fi
+    ! is_valid "$url" && fail "INVALID URL: $url"
+
+    if which curl > /dev/null; then
+        curl -fsSL ${GITHUB_API_TOKEN:+-H "Authorization: token $GITHUB_API_TOKEN"} "$url"
+    elif which wget > /dev/null; then
+        wget -q -O- ${GITHUB_API_TOKEN:+--header="Authorization: token $GITHUB_API_TOKEN"} "$url"
+    else
+        fail "Error: Neither curl nor wget is available."
+    fi
 }
 
-get_arch() {
-	platform=$(uname -s)
-	arch=$(uname -m)
+arch_docker_format() {
+    uname_arch="$(uname -m)"
 
-	case "$platform" in
-		Darwin)
-			platform="darwin"
-			case "$arch" in
-				aarch64 | arm64) arch="arm64" ;;
-				x86_64) arch="amd64" ;;
-				*) fail "Incompatible darwin architecture." ;;
-			esac
-			;;
-		Linux)
-			platform="linux"
-			case "$arch" in
-				aarch64 | arm64) arch="arm64" ;;
-				# armv7l | armv7) base_triple="armv7-unknown-linux" ;;
-				x86_64) arch="amd64" ;;
-				*) fail "Incompatible linux architecture." ;;
-			esac
-			;;
-		*) fail "Incompatible platform." ;;
-	esac
-
-	printf '%s' "${platform}_${arch}"
+    case "$uname_arch" in
+        x86_64 | amd64)         printf "amd64" ;;
+        i386)                   printf "i386" ;;
+        aarch64 | arm64)        printf "arm64" ;;
+        armv7l | armv7 | armhf) printf "armhf" ;;
+        *)                      fail "Unsupported architecture: $uname_arch" ;;
+    esac
 }
